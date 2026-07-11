@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16   # initially image: postgres:16-alpine, this new one supports vector(364) for embeddings
     container_name: enterprise_db
     environment:
       POSTGRES_USER: postgres

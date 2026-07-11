@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
 
+    # AI RAG Configuration
+    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+    CHUNK_SIZE: int = 500
+    CHUNK_OVERLAP: int = 100
+    TOP_K: int = 5
+
     # Security
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"

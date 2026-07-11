@@ -5,10 +5,10 @@ from contextlib import asynccontextmanager
 
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
-from backend.app.api.v1 import auth, users, health
+from backend.app.api.v1 import auth, users, health, documents
 from backend.app.middleware.logging import LoggingMiddleware
 from backend.app.core.exceptions import BaseAppException
-
+ 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup logic
@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown logic
     logger.info("Shutting down Enterprise AI Platform Backend...")
-
+ 
 def create_application() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME,
@@ -25,7 +25,7 @@ def create_application() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
     )
-
+ 
     # Set CORS
     if settings.BACKEND_CORS_ORIGINS:
         application.add_middleware(
@@ -35,14 +35,15 @@ def create_application() -> FastAPI:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-
+ 
     # Add Custom Middlewares
     application.add_middleware(LoggingMiddleware)
-
+ 
     # Include Routers
     application.include_router(health.router, prefix=settings.API_V1_STR)
     application.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
     application.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
+    application.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"])
 
     # Global Exception Handlers
     @application.exception_handler(BaseAppException)
