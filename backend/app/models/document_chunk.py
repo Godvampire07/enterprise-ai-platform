@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime, func, JSON
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -23,7 +23,7 @@ class DocumentChunk(Base):
 
     chunk_metadata = Column(
         "metadata",
-        JSONB,
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         server_default="{}",
     )

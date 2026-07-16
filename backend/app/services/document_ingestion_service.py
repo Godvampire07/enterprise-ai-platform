@@ -34,7 +34,8 @@ class DocumentIngestionService:
         file_content: BinaryIO,
         original_filename: str,
         content_type: str,
-        file_size: int
+        file_size: int,
+        user_id: int
     ) -> Document:
         """Runs the complete ingestion pipeline:
         Save file -> Create doc record -> Parse pages -> Chunk -> Embed -> Bulk Insert.
@@ -60,7 +61,8 @@ class DocumentIngestionService:
                 original_filename=original_filename,
                 file_path=file_path,
                 file_size=file_size,
-                content_type=content_type
+                content_type=content_type,
+                user_id=user_id
             )
 
             # Parse document pages

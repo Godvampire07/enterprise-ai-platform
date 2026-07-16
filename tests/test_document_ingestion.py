@@ -32,6 +32,12 @@ def db_session():
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestingSessionLocal()
     
+    # Create test user to satisfy foreign key constraints
+    from backend.app.models.user import User
+    test_user = User(id=1, username="testuser", email="test@example.com", hashed_password="mockedpassword")
+    session.add(test_user)
+    session.commit()
+    
     try:
         yield session
     finally:
@@ -78,7 +84,8 @@ def test_document_ingestion_success(db_session, mock_embedding_service, test_pdf
         file_content=test_pdf_bytes,
         original_filename="sample_ingest.pdf",
         content_type="application/pdf",
-        file_size=1024
+        file_size=1024,
+        user_id=1
     )
     
     # Assert document details
@@ -90,7 +97,7 @@ def test_document_ingestion_success(db_session, mock_embedding_service, test_pdf
     chunks = chunk_repo.get_chunks(doc.id)
     assert len(chunks) == 1
     assert chunks[0].text == "Mock PDF document text content for ingestion pipeline."
-    assert chunks[0].embedding == [0.1] * 384
+    assert list(chunks[0].embedding) == [0.1] * 384
     
     # Clean up document using DocumentService CRUD manager
     doc_service = DocumentService(db_session, doc_repo)
@@ -124,7 +131,8 @@ def test_document_ingestion_rollback_on_failure(db_session, mock_embedding_servi
             file_content=test_pdf_bytes,
             original_filename="fail_ingest.pdf",
             content_type="application/pdf",
-            file_size=1024
+            file_size=1024,
+            user_id=1
         )
     assert "Embedding generation failed." in str(excinfo.value)
     

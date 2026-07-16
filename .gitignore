@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# keys
+my_keys.txt
+
+#storage
+storage/
+
 # Distribution / packaging
 .Python
 build/
@@ -111,3 +117,4 @@ venv.bak/
 # Database
 *.sqlite3
 data/
+*.db

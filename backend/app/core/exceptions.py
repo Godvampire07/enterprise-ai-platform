@@ -33,3 +33,15 @@ class ValidationError(BaseAppException):
 class ConflictError(BaseAppException):
     def __init__(self, detail: str = "Resource already exists") -> None:
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+
+class LLMServiceError(BaseAppException):
+    """Raised when an upstream LLM provider fails (API error, timeout, invalid response)."""
+    def __init__(self, detail: str = "LLM service encountered an error") -> None:
+        super().__init__(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+
+class RetrievalError(BaseAppException):
+    """Raised when vector similarity search or chunk retrieval fails."""
+    def __init__(self, detail: str = "Document retrieval failed") -> None:
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
+        )

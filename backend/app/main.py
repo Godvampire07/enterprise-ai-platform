@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
-from backend.app.api.v1 import auth, users, health, documents
+from backend.app.api.v1 import auth, users, health, documents, chat
 from backend.app.middleware.logging import LoggingMiddleware
 from backend.app.core.exceptions import BaseAppException
  
@@ -44,6 +44,7 @@ def create_application() -> FastAPI:
     application.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
     application.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
     application.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"])
+    application.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
 
     # Global Exception Handlers
     @application.exception_handler(BaseAppException)

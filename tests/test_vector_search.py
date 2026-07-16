@@ -21,6 +21,12 @@ def db_session():
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestingSessionLocal()
     
+    # Create test user to satisfy foreign key constraints
+    from backend.app.models.user import User
+    test_user = User(id=1, username="testuser", email="test@example.com", hashed_password="mockedpassword")
+    session.add(test_user)
+    session.commit()
+    
     try:
         yield session
     finally:
@@ -32,8 +38,8 @@ def test_vector_similarity_search_precision(db_session):
     chunk_repo = ChunkRepository(db_session)
     
     # 1. Create two test document rows
-    doc1 = doc_repo.create_document("doc1.pdf", "doc1.pdf", "/tmp/doc1.pdf", 100, "application/pdf")
-    doc2 = doc_repo.create_document("doc2.pdf", "doc2.pdf", "/tmp/doc2.pdf", 100, "application/pdf")
+    doc1 = doc_repo.create_document("doc1.pdf", "doc1.pdf", "/tmp/doc1.pdf", 100, "application/pdf", user_id=1)
+    doc2 = doc_repo.create_document("doc2.pdf", "doc2.pdf", "/tmp/doc2.pdf", 100, "application/pdf", user_id=1)
     db_session.commit()
     
     # 2. Setup vectors representing semantic directions

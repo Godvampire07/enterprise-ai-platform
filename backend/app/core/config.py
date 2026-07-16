@@ -16,6 +16,24 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 500
     CHUNK_OVERLAP: int = 100
     TOP_K: int = 5
+    RAG_SCORE_THRESHOLD: float = 0.3
+
+    # LLM Configuration
+    LLM_PROVIDER: str = "gemini"
+    LLM_MODEL: str = "gemini-2.0-flash"
+    LLM_TEMPERATURE: float = 0.1
+    LLM_MAX_TOKENS: int = 2048
+    LLM_TIMEOUT: int = 60
+    LLM_MAX_RETRIES: int = 3
+
+    # LLM Provider API Keys
+    GEMINI_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3"
+    OPENROUTER_API_KEY: Optional[str] = None
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    OPENROUTER_MODEL: str = "google/gemma-4-31b-it:free"
 
     # Security
     JWT_SECRET: str

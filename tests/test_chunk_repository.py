@@ -23,6 +23,12 @@ def db_session():
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestingSessionLocal()
     
+    # Create test user to satisfy foreign key constraints
+    from backend.app.models.user import User
+    test_user = User(id=1, username="testuser", email="test@example.com", hashed_password="mockedpassword")
+    session.add(test_user)
+    session.commit()
+    
     try:
         yield session
     finally:
@@ -39,7 +45,8 @@ def test_repository_insertion_and_deletion(db_session):
         original_filename="original.pdf",
         file_path="/storage/test_repo_file.pdf",
         file_size=1024,
-        content_type="application/pdf"
+        content_type="application/pdf",
+        user_id=1
     )
     db_session.commit()
     

@@ -27,6 +27,12 @@ def db_session():
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestingSessionLocal()
+    
+    # Create test user to satisfy foreign key constraints
+    test_user = User(id=1, username="testadmin", email="admin@enterprise.ai", hashed_password="mockedpassword", role="admin")
+    session.add(test_user)
+    session.commit()
+    
     try:
         yield session
     finally:
@@ -113,3 +119,63 @@ def test_router_upload_retrieve_search_delete(client):
     # 7. Verify deletion cascade
     get_res_gone = client.get(f"{settings.API_V1_STR}/documents/{doc_id}")
     assert get_res_gone.status_code == 404
+
+
+def test_router_list_and_ownership_protection(client, db_session):
+    # 1. Create a second user in the database
+    from backend.app.models.user import User
+    second_user = User(id=2, username="otheruser", email="other@enterprise.ai", hashed_password="mockedpassword", role="user")
+    db_session.add(second_user)
+    db_session.commit()
+
+    # 2. Upload document as user 1 (the default testadmin user 1 override is active)
+    doc_pdf = fitz.open()
+    p = doc_pdf.new_page()
+    p.insert_text((50, 50), "User 1 document content.")
+    pdf_bytes = io.BytesIO()
+    doc_pdf.save(pdf_bytes)
+    doc_pdf.close()
+    pdf_bytes.seek(0)
+
+    upload_res = client.post(
+        f"{settings.API_V1_STR}/documents/upload",
+        files={"file": ("user1_doc.pdf", pdf_bytes, "application/pdf")}
+    )
+    assert upload_res.status_code == 201
+    doc_id = upload_res.json()["id"]
+
+    # 3. Test listing endpoint (GET /documents) for user 1
+    list_res = client.get(f"{settings.API_V1_STR}/documents")
+    assert list_res.status_code == 200
+    docs_list = list_res.json()
+    # Ensure user 1 can see their document
+    assert any(d["id"] == doc_id for d in docs_list)
+
+    # 4. Override current user to user 2
+    def override_get_current_user_user2():
+        return User(id=2, username="otheruser", email="other@enterprise.ai", role="user")
+    app.dependency_overrides[get_current_user] = override_get_current_user_user2
+
+    # 5. Try accessing user 1's document as user 2 (should return 403 Forbidden)
+    get_res = client.get(f"{settings.API_V1_STR}/documents/{doc_id}")
+    assert get_res.status_code == 403
+
+    # Try deleting user 1's document as user 2 (should return 403 Forbidden)
+    del_res = client.delete(f"{settings.API_V1_STR}/documents/{doc_id}")
+    assert del_res.status_code == 403
+
+    # Try searching user 1's document as user 2 (should return 403 Forbidden)
+    search_res = client.post(
+        f"{settings.API_V1_STR}/documents/search",
+        json={"query": "test query", "document_id": doc_id}
+    )
+    assert search_res.status_code == 403
+
+    # 6. Restore user 1 override
+    def override_get_current_user_user1():
+        return User(id=1, username="testadmin", email="admin@enterprise.ai", role="admin")
+    app.dependency_overrides[get_current_user] = override_get_current_user_user1
+
+    # 7. Clean up
+    del_res_success = client.delete(f"{settings.API_V1_STR}/documents/{doc_id}")
+    assert del_res_success.status_code == 200

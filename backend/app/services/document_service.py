@@ -13,9 +13,9 @@ class DocumentService:
         """Fetch metadata for a specific document."""
         return self.doc_repo.get_document(doc_id)
 
-    def get_all_documents(self, skip: int = 0, limit: int = 100) -> List[Document]:
+    def get_all_documents(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Document]:
         """Fetch multiple document records with pagination limits."""
-        return self.doc_repo.get_all_documents(skip=skip, limit=limit)
+        return self.doc_repo.get_all_documents(user_id=user_id, skip=skip, limit=limit)
 
     def delete_document(self, doc_id: int) -> Optional[Document]:
         """Delete document record and associated file copy from disk."""
